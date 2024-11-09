@@ -1,0 +1,67 @@
+* {
+  font-family: "Plus Jakarta Display", Helvetica, Arial, sans-serif;
+  color: white;
+  font-size: 20px;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  background-color: rgb(39, 39, 39);
+}
+
+.navbar {
+  background-color: rgb(27, 27, 27);
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+
+  .route {
+    padding: 10px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
+.contentpanel {
+  margin-top: 20px;
+
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    .container {
+      display: flex;
+      justify-content: left;
+      gap: 20px;
+      background-color: rgb(27, 27, 27);
+      border-radius: 10px;
+      padding: 20px;
+      .addStockBtn {
+        background-color: #4261b6;
+      }
+    }
+
+    .views {
+      margin-top: 20px;
+      background-color: rgb(27, 27, 27);
+      border-radius: 10px;
+      padding: 20px;
+    }
+  }
+
+  input {
+    padding: 10px;
+    background-color: transparent;
+    border: solid 1px rgb(39, 39, 39);
+  }
+}

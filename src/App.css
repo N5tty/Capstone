@@ -1,0 +1,59 @@
+.dashboard {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 15%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  .logo{
+    text-align: center;
+    font-size: 25px;
+    margin: 0;
+    padding: 20px;
+    background-color: rgb(27, 27, 27);
+    border-radius:  10px;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+
+    li {
+      font-size: 18px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background-color 0.3s ease;
+
+      /* Selected styling */
+      &.selected {
+        background-color: #4261b6; /* Use your preferred color */
+        color: white; /* Optional: Change text color */
+        border-radius: 10px;
+      }
+    }
+
+    .icon {
+      color: white;
+      padding: 10px;
+      background-color: rgba(0, 0, 0, 0.54);
+      border-radius: 10px;
+      fill: rgb(29, 48, 133);
+    }
+  }
+}
+
+.main-content {
+  padding: 20px;
+  width: 85%;
+  .controlpanel {
+    font-size: 15px;
+  }
+}
+
+
+
