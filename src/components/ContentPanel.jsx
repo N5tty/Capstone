@@ -66,6 +66,12 @@ const ContentPanel = () => {
 
   const handleAddStock = useCallback(async () => {
     if (validateInputs()) {
+      const totalCost = parseFloat(price) * parseInt(quantity); // Calculate total cost
+      if (totalCost > wallet) {
+        setError('Insufficient funds in the wallet to buy these stocks!');
+        return; // Stop further execution
+      }
+
       const currentPrice = await fetchStockData();
       if (currentPrice !== null) {
         const profitLoss = (currentPrice - parseFloat(price)) * parseInt(quantity);
@@ -85,14 +91,16 @@ const ContentPanel = () => {
           );
           return updatedProfitLossValues;
         });
-        console.log(profitLossValues);
-        setWallet((prevWallet) => prevWallet - parseFloat(price) * parseInt(quantity));
+
+        setWallet((prevWallet) => prevWallet - totalCost); // Deduct total cost from wallet
         setSymbol('');
         setQuantity('');
         setPrice('');
+        setError(''); // Clear any error messages
       }
     }
   }, [validateInputs, fetchStockData, addStock, wallet, symbol, quantity, price]);
+
 
   const handleTopUpSubmit = () => {
     if (!topUpAmount || isNaN(topUpAmount) || Number(topUpAmount) <= 0) {
