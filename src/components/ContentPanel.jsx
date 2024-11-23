@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useStockContext } from '../contexts/stockContext';
+import icon from '../img/profile.png';
 
 const ContentPanel = () => {
-  const { stocks, addStock } = useStockContext();
+  const { stocks, addStock, setStocks } = useStockContext();
   const [symbol, setSymbol] = useState('');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
@@ -11,8 +12,10 @@ const ContentPanel = () => {
   const [wallet, setWallet] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
-  const [profitLossPercentage, setProfitLossPercentage] = useState(0);
-  const [profitLossValues, setProfitLossValues] = useState([]);
+  const [sellModal, setSellModal] = useState(false);
+  const [sellQuantity, setSellQuantity] = useState('');
+  const [selectedStock, setSelectedStock] = useState(null);
+
 
   const API_KEY = 'B992O8DINY2BFCJT';
 
@@ -51,19 +54,6 @@ const ContentPanel = () => {
     }
   }, [symbol]);
 
-  const calculateProfitLossPercentage = useCallback(() => {
-    if (wallet === 0) {
-      setProfitLossPercentage(0);
-      return;
-    }
-
-    const totalProfitLoss = profitLossValues.reduce((acc, value) => acc + value, 0);
-    const percentage = (totalProfitLoss / wallet) * 100;
-
-    setProfitLossPercentage(percentage.toFixed(2));
-  }, [profitLossValues, wallet]);
-
-
   const handleAddStock = useCallback(async () => {
     if (validateInputs()) {
       const totalCost = parseFloat(price) * parseInt(quantity); // Calculate total cost
@@ -74,23 +64,14 @@ const ContentPanel = () => {
 
       const currentPrice = await fetchStockData();
       if (currentPrice !== null) {
-        const profitLoss = (currentPrice - parseFloat(price)) * parseInt(quantity);
         const newStock = {
           symbol,
           quantity,
           purchasePrice: price,
           currentPrice,
-          profitLoss: profitLoss.toFixed(2),
         };
 
         addStock(newStock);
-        setProfitLossValues((prev) => {
-          const updatedProfitLossValues = [...prev, profitLoss];
-          setProfitLossPercentage(
-            ((updatedProfitLossValues.reduce((acc, val) => acc + val, 0) / wallet) * 100).toFixed(2)
-          );
-          return updatedProfitLossValues;
-        });
 
         setWallet((prevWallet) => prevWallet - totalCost); // Deduct total cost from wallet
         setSymbol('');
@@ -101,6 +82,43 @@ const ContentPanel = () => {
     }
   }, [validateInputs, fetchStockData, addStock, wallet, symbol, quantity, price]);
 
+  const handleSellStock = () => {
+    if (!sellQuantity || isNaN(sellQuantity) || Number(sellQuantity) <= 0) {
+      setError('Please enter a valid quantity to sell!');
+      return;
+    }
+
+    const quantityToSell = parseInt(sellQuantity);
+
+    if (quantityToSell > selectedStock.quantity) {
+      setError('You cannot sell more than the available quantity!');
+      return;
+    }
+
+    const updatedStocks = stocks.map((stock) => {
+      if (stock.symbol === selectedStock.symbol) {
+        const remainingQuantity = stock.quantity - quantityToSell;
+
+        if (remainingQuantity === 0) return null;
+
+        return {
+          ...stock,
+          quantity: remainingQuantity,
+        };
+      }
+      return stock;
+    }).filter(Boolean);
+
+    setStocks(updatedStocks);
+
+    const earnings = quantityToSell * selectedStock.currentPrice;
+    setWallet((prevWallet) => prevWallet + earnings);
+
+    setSellModal(false);
+    setSellQuantity('');
+    setSelectedStock(null);
+    setError('');
+  };
 
   const handleTopUpSubmit = () => {
     if (!topUpAmount || isNaN(topUpAmount) || Number(topUpAmount) <= 0) {
@@ -136,6 +154,27 @@ const ContentPanel = () => {
           </div>
         </div>
       )}
+      {sellModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <p className="header">Sell Stock</p>
+            <p>{selectedStock?.symbol}</p>
+            <p>Quantity: {selectedStock?.quantity}</p>
+            <input
+              type="number"
+              value={sellQuantity}
+              onChange={(e) => setSellQuantity(e.target.value)}
+              placeholder="Enter quantity to sell"
+            />
+            <button onClick={handleSellStock} className="primaryBtn">
+              Sell
+            </button>
+            <button onClick={() => setSellModal(false)} className="secondaryBtn">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       <div className="leftpanel">
         <div className="paneltop">
           <div className="addStockContainer">
@@ -166,16 +205,16 @@ const ContentPanel = () => {
             {error && <p className="error-message">{error}</p>}
           </div>
           <div className="ccContainer">
-            <div class="card-container">
-              <div class="card">
-                <div class="card-inner">
-                  <div class="front">
-                    <img src="https://i.ibb.co/PYss3yv/map.png" class="map-img" />
-                    <div class="row">
+            <div className="card-container">
+              <div className="card">
+                <div className="card-inner">
+                  <div className="front">
+                    <img src="https://i.ibb.co/PYss3yv/map.png" className="map-img" />
+                    <div className="row">
                       <img src="https://i.ibb.co/G9pDnYJ/chip.png" width="60px" />
                       <img src="https://i.ibb.co/WHZ3nRJ/visa.png" width="60px" />
                     </div>
-                    <div class="card-no">
+                    <div className="card-no">
                       <p>5244</p>
                       <p>2150</p>
                       <p>8252</p>
@@ -187,12 +226,9 @@ const ContentPanel = () => {
             </div>
           </div>
           <div className="profit-container">
-            <p className="header">Profits:</p>
-            <p className="profitValue" style={{ color: profitLossPercentage >= 0 ? 'green' : 'red' }}>
-              {profitLossPercentage}%
-            </p>
+            <p className="header">Aven Lam</p>
+            <img src={icon} className="logo" alt="UserProfile"/>
           </div>
-
         </div>
         <div className="panelbottom">
           <div className="views">
@@ -209,6 +245,7 @@ const ContentPanel = () => {
                     <th>Purchase Price</th>
                     <th>Current Price</th>
                     <th>Profit/Loss</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,6 +270,17 @@ const ContentPanel = () => {
                           )}`
                           : 'N/A'}
                       </td>
+                      <td>
+                        <button
+                          className="secondaryBtn"
+                          onClick={() => {
+                            setSellModal(true);
+                            setSelectedStock(stock);
+                          }}
+                        >
+                          Sell
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -245,7 +293,7 @@ const ContentPanel = () => {
       <div className="rightpanel">
         <div className="paneltop">
           <p className="header">
-            Wallet: $<span className="profit">{wallet}</span>
+            Wallet: $<span className="profit">{wallet.toFixed(2)}</span>
           </p>
           <input
             type="button"
