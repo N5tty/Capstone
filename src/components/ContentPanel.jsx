@@ -12,6 +12,8 @@ const ContentPanel = () => {
   const [wallet, setWallet] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
+  const [profitLossPercentage, setProfitLossPercentage] = useState(0);
+  const [profitLossValues, setProfitLossValues] = useState([]);
   const [sellModal, setSellModal] = useState(false);
   const [sellQuantity, setSellQuantity] = useState('');
   const [selectedStock, setSelectedStock] = useState(null);
@@ -54,30 +56,50 @@ const ContentPanel = () => {
     }
   }, [symbol]);
 
+  const calculateProfitLossPercentage = useCallback(() => {
+    if (wallet === 0) {
+      setProfitLossPercentage(0);
+      return;
+    }
+
+    const totalProfitLoss = profitLossValues.reduce((acc, value) => acc + value, 0);
+    const percentage = (totalProfitLoss / wallet) * 100;
+
+    setProfitLossPercentage(percentage.toFixed(2));
+  }, [profitLossValues, wallet]);
+
+
   const handleAddStock = useCallback(async () => {
     if (validateInputs()) {
-      const totalCost = parseFloat(price) * parseInt(quantity);
+      const totalCost = parseFloat(price) * parseInt(quantity); // Calculate total cost
       if (totalCost > wallet) {
         setError('Insufficient funds in the wallet to buy these stocks!');
-        return;
+        return; // Stop further execution
       }
 
       const currentPrice = await fetchStockData();
       if (currentPrice !== null) {
+        const profitLoss = (currentPrice - parseFloat(price)) * parseInt(quantity);
         const newStock = {
           symbol,
           quantity,
           purchasePrice: price,
           currentPrice,
+          profitLoss: profitLoss.toFixed(2),
         };
 
         addStock(newStock);
+        setProfitLossValues((prev) => {
+          const updatedProfitLossValues = [...prev, profitLoss];
+          calculateProfitLossPercentage();
+          return updatedProfitLossValues;
+        });
 
-        setWallet((prevWallet) => prevWallet - totalCost);
+        setWallet((prevWallet) => prevWallet - totalCost); // Deduct total cost from wallet
         setSymbol('');
         setQuantity('');
         setPrice('');
-        setError('');
+        setError(''); // Clear any error messages
       }
     }
   }, [validateInputs, fetchStockData, addStock, wallet, symbol, quantity, price]);
@@ -104,6 +126,7 @@ const ContentPanel = () => {
         return {
           ...stock,
           quantity: remainingQuantity,
+          profitLoss: ((stock.currentPrice - stock.purchasePrice) * remainingQuantity).toFixed(2),
         };
       }
       return stock;
@@ -229,6 +252,7 @@ const ContentPanel = () => {
             <p className="header">Aven Lam</p>
             <img src={icon} className="logo" alt="UserProfile"/>
           </div>
+
         </div>
         <div className="panelbottom">
           <div className="views">
