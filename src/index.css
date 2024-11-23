@@ -67,18 +67,16 @@ body {
       flex-wrap: nowrap;
 
       .addStockContainer {
+        width: 100%;
         display: flex;
-        flex: 1;
         flex-direction: column;
         justify-content: center;
-        max-width: 20%;
+        max-width: 40%;
         gap: 10px;
         padding: 20px;
         box-sizing: border-box;
         background-color: rgb(27, 27, 27);
         border-radius: 10px;
-        padding: 20px;
-
         input {
           max-width: 100%;
           border-radius: 4px;
@@ -457,5 +455,8 @@ input[type="button"]:hover {
   .leftpanel > .paneltop {
     display: flex !important;
     flex-direction: column !important;
+  }
+  .ccContainer{
+    display: none !important;
   }
 }
